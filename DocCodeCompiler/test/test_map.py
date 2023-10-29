@@ -1,5 +1,5 @@
 from unittest import TestCase
-from .map import SuperHashMap
+from super_hash_map.map import SuperHashMap
 
 
 class TestSuperHashMap(TestCase):

@@ -4,6 +4,8 @@ from .element import SuperHashMapElement
 
 
 class SuperHashMap:
+    current_value = 0
+
     def __init__(self, size=20):
         self._size = size
         self._data = [sllist() for _ in range(self._size)]

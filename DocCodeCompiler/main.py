@@ -1,9 +1,8 @@
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+from program_internal_form.doc_code_pif import DocCodePif
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+pif = DocCodePif("token.in")
 
+pif.analyse("D:\\school\\Informatica\\Anul 3\\Semestrul 1\\Limbaje Formale și Tehnici de Compilare\\Lab\\Lab1\\p1.d")
+
+print(pif)

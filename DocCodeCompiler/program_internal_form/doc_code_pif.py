@@ -72,38 +72,67 @@ class DocCodePif(Pif):
         match = code[0]
         valid = True
         index = 1
-        state = 2  # 0 for letter, 1 for space
+        state = 0  # 0 for big letter, 1 for small letter, 2 for space
         while valid:
-            if DocCodePif.is_small_letter(code[index]) or DocCodePif.is_big_letter(code[index]):
-                match += code[index]
-                state = 0
+            if state == 0:
+                if self.is_small_letter(code[index]):
+                    match += code[index]
+                    state = 1
+                elif code[index] == ' ':
+                    match += code[index]
+                    state = 2
+                else:
+                    valid = False
+            elif state == 1:
+                if self.is_small_letter(code[index]):
+                    match += code[index]
+                elif code[index] == ' ':
+                    match += code[index]
+                    state = 2
+                else:
+                    valid = False
             else:
-                if state == 0:
-                    if code[index] == ' ':
-                        match += code[index]
-                        state = 1
-                    else:
-                        valid = False
-                elif state == 1:
+                if self.is_big_letter(code[index]):
+                    match += code[index]
+                    state = 0
+                else:
                     valid = False
             index += 1
 
         return self.__add_others_helper(match, code, self._symbols, self._SYMBOL_INDEX)
 
-    def add_constant(self, code: str) -> (bool, str):
+    def add_number_constant(self, code: str) -> (bool, str):
         if code[:8] != 'numărul ':
             return False, code
 
         if not code[8].isdigit():
             return False, code
 
-        [_, nr, _] = code.split(' ')
+        match = re.match(r'\d+', code[8:])
+        if match:
+            nr = match.group(0)
+        else:
+            return False, code
         try:
             float(nr)
             match = 'numărul ' + nr
             return self.__add_others_helper(match, code, self._constants, self._CONSTANT_INDEX)
         except ValueError:
             return False, code
+
+    def add_string_constant(self, code: str) -> (bool, str):
+        if code[0] != '„':
+            return False, code
+
+        index = code.find('”')
+        if index == -1:
+            raise LexicalError("Invalid string constant")
+
+        return self.__add_others_helper(code[0: index + 1], code, self._constants, self._CONSTANT_INDEX)
+
+    def add_constant(self, code: str) -> (bool, str):
+        res = self.add_number_constant(code)
+        return res if res[0] else self.add_string_constant(code)
 
     @staticmethod
     def _special_point_split(text: str) -> list[str]:
@@ -115,9 +144,8 @@ class DocCodePif(Pif):
                 cnt += 1
             elif character == '”':
                 cnt -= 1
-            elif character == '.':
-                if cnt > 0:
-                    continue
+
+            if character == '.' and cnt == 0:
                 result.append(current_part)
                 current_part = ''
             else:
